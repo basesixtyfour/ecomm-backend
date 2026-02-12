@@ -1,0 +1,28 @@
+from django.db import models
+from uuid6 import uuid7
+from django.contrib.auth.models import User
+from products.models import Product
+from decimal import Decimal
+
+class Cart(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, through='CartItem')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def total_price(self):
+        return sum(
+            (item.quantity * item.product.price for item in self.items.select_related('product')),
+            Decimal('0.00')
+        )
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+
+    @property
+    def subtotal(self):
+        return self.quantity * self.product.price

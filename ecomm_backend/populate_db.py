@@ -19,7 +19,7 @@ import django  # noqa: E402
 
 django.setup()
 
-from django.contrib.auth.models import User  # noqa: E402
+from django.contrib.auth import get_user_model  # noqa: E402
 from django.core.files.base import ContentFile  # noqa: E402
 from django.db import transaction  # noqa: E402
 
@@ -27,6 +27,8 @@ from cart.models import Cart, CartItem  # noqa: E402
 from orders.models import Order, OrderItem  # noqa: E402
 from products.models import Category, Product  # noqa: E402
 from users.models import UserProfile  # noqa: E402
+
+User = get_user_model()
 
 
 SEED_USERNAME_PREFIX = "seed_user_"

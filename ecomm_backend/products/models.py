@@ -7,6 +7,9 @@ class Category(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     name = models.CharField(max_length=255)
@@ -16,4 +19,7 @@ class Product(models.Model):
     categories = models.ManyToManyField(Category)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
 

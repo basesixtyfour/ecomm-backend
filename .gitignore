@@ -1,3 +1,5 @@
+.gitignore
+
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -8,3 +10,5 @@ wheels/
 
 # Virtual environments
 .venv
+
+ecomm_backend/api.http

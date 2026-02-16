@@ -17,8 +17,8 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         email = attrs.get("email", "").strip().lower()
         password = attrs.get("password")
 
-        User = get_user_model()
-        user = User.objects.filter(email__iexact=email).first()
+        user = get_user_model().objects.filter(email__iexact=email).first()
+
         if not user or not user.check_password(password):
             raise AuthenticationFailed("Invalid email or password")
         if not user.is_active:
@@ -26,13 +26,8 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         refresh = RefreshToken.for_user(user)
         return {
-            "success": True,
-            "data": {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-                "id": str(user.id),
-                "email": user.email,
-            }
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
         }
 
 class RegisterUserSerializer(serializers.ModelSerializer):

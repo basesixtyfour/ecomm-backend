@@ -1,3 +1,19 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from .models import Product
+from .serializers import ProductSerializer
+from .filters import ProductFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import CustomOrderingFilter
+from rest_framework.filters import SearchFilter
 
-# Create your views here.
+class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filterset_class = ProductFilter
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        CustomOrderingFilter,
+    ]
+    search_fields = ['name', 'description', 'categories__name']
+    ordering_fields = ['price']

@@ -1,13 +1,10 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics
 from django.conf import settings
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .models import UserProfile
-from .serializers import UserProfileSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer
-from .pagination import UserPagination
-from rest_framework.permissions import AllowAny
+from .serializers import UserInfoSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer
 
 
 class RefreshCookieMixin:
@@ -64,16 +61,12 @@ class CookieTokenRefreshView(RefreshCookieMixin, TokenRefreshView):
         return response
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    pagination_class = UserPagination
+class UserInfoView(generics.RetrieveAPIView):
+    serializer_class = UserInfoSerializer
     permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        if self.request.user.is_staff:
-            return UserProfile.objects.all()
-        return UserProfile.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        return self.request.user
 
 class RegisterUserView(generics.CreateAPIView):
     serializer_class = RegisterUserSerializer

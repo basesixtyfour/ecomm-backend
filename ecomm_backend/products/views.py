@@ -7,7 +7,7 @@ from .filters import CustomOrderingFilter
 from rest_framework.filters import SearchFilter
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.prefetch_related('categories').distinct()
     serializer_class = ProductSerializer
     filterset_class = ProductFilter
     filter_backends = [

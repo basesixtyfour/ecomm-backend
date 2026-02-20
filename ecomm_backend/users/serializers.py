@@ -3,12 +3,14 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
-from .models import UserProfile, User
+from .models import User
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserInfoSerializer(serializers.ModelSerializer):
+    profile_photo = serializers.ImageField(source='userprofile.profile_photo', read_only=True)
+
     class Meta:
-        model = UserProfile
-        fields = ['id', 'user', 'profile_photo']
+        model = User
+        fields = ['id', 'username', 'email', 'profile_photo']
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"

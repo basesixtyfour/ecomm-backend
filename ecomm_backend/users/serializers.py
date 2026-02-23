@@ -27,9 +27,11 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise AuthenticationFailed("User account is disabled")
 
         refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+        access["is_staff"] = user.is_staff
         return {
             "refresh": str(refresh),
-            "access": str(refresh.access_token),
+            "access": str(access),
         }
 
 class RegisterUserSerializer(serializers.ModelSerializer):

@@ -1,10 +1,9 @@
 from rest_framework import generics
 from django.conf import settings
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from .serializers import UserInfoSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer
+from .serializers import UserInfoSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer, CustomTokenRefreshSerializer
 
 
 class RefreshCookieMixin:
@@ -34,7 +33,7 @@ class EmailTokenObtainPairView(RefreshCookieMixin, TokenObtainPairView):
 
 
 class CookieTokenRefreshView(RefreshCookieMixin, TokenRefreshView):
-    serializer_class = TokenRefreshSerializer
+    serializer_class = CustomTokenRefreshSerializer
     permission_classes = [AllowAny]
 
     def get_serializer(self, *args, **kwargs):

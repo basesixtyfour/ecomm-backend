@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 from .models import User
@@ -10,7 +11,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile_photo']
+        fields = ['id', 'username', 'email', 'profile_photo', 'is_staff']
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"
@@ -33,6 +34,35 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             "refresh": str(refresh),
             "access": str(access),
         }
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs["refresh"])
+        access = refresh.access_token
+
+        user_id = access.get("user_id")
+        if user_id:
+            try:
+                user = get_user_model().objects.get(id=user_id)
+                access["is_staff"] = user.is_staff
+            except Exception:
+                pass
+
+        data = {"access": str(access)}
+
+        if api_settings.ROTATE_REFRESH_TOKENS:
+            if api_settings.BLACKLIST_AFTER_ROTATION:
+                try:
+                    refresh.blacklist()
+                except AttributeError:
+                    pass
+            refresh.set_jti()
+            refresh.set_exp()
+            refresh.set_iat()
+            data["refresh"] = str(refresh)
+
+        return data
+
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
@@ -61,9 +62,17 @@ async def support_ws(
 
     peer = manager.get_peer(room_id, role)
     if peer:
+        peer_role = "agent" if role == "user" else "user"
+        # Tell the peer that we just came online
         await _send_json(peer, {
             "type": "presence",
             "sender_role": role,
+            "status": "online",
+        })
+        # Tell us that the peer is already online
+        await _send_json(websocket, {
+            "type": "presence",
+            "sender_role": peer_role,
             "status": "online",
         })
 
@@ -108,6 +117,37 @@ async def support_ws(
                         "sender_role": role,
                         "is_typing": bool(data.get("is_typing", True)),
                     })
+
+            elif msg_type == "close":
+                if not is_staff:
+                    await _send_json(websocket, {
+                        "type": "error",
+                        "content": "only agents can close a room",
+                    })
+                    continue
+
+                async with AsyncSessionLocal() as close_session:
+                    close_result = await close_session.execute(
+                        select(ChatRoom).where(ChatRoom.id == room_id)
+                    )
+                    room_to_close = close_result.scalar_one_or_none()
+                    if room_to_close and room_to_close.status != ChatRoomStatus.closed:
+                        room_to_close.status = ChatRoomStatus.closed
+                        room_to_close.closed_at = datetime.now(timezone.utc)
+                        await close_session.commit()
+
+                peer = manager.get_peer(room_id, role)
+                if peer:
+                    await _send_json(peer, {
+                        "type": "room_closed",
+                        "content": "This chat has been closed by the support agent.",
+                    })
+                await _send_json(websocket, {
+                    "type": "room_closed",
+                    "content": "Chat closed.",
+                })
+                manager.disconnect(room_id, role, user_id, is_staff)
+                break
 
     except WebSocketDisconnect:
         manager.disconnect(room_id, role, user_id, is_staff)

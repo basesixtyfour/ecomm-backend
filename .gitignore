@@ -12,3 +12,7 @@ wheels/
 .venv
 
 ecomm_backend/api.http
+
+# SQLite database
+db.sqlite3
+**/db.sqlite3

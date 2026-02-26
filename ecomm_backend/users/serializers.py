@@ -3,8 +3,10 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework import serializers
 from .models import User
+from .token_blacklist import is_token_blacklisted
 
 class UserInfoSerializer(serializers.ModelSerializer):
     profile_photo = serializers.ImageField(source='userprofile.profile_photo', read_only=True)
@@ -38,6 +40,9 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         refresh = RefreshToken(attrs["refresh"])
+
+        if is_token_blacklisted(refresh["jti"]):
+            raise TokenError("Token has been revoked")
         access = refresh.access_token
 
         user_id = access.get("user_id")

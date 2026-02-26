@@ -1,9 +1,13 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from django.conf import settings
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .serializers import UserInfoSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer, CustomTokenRefreshSerializer
+from .token_blacklist import blacklist_token
 
 
 class RefreshCookieMixin:
@@ -78,3 +82,28 @@ class RegisterUserView(generics.CreateAPIView):
             status=response.status_code,
             headers=response.headers,
         )
+
+
+class LogoutView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        cookie_name = getattr(settings, "JWT_REFRESH_COOKIE_NAME", "refresh_token")
+        raw_token = request.COOKIES.get(cookie_name)
+
+        if raw_token:
+            try:
+                token = RefreshToken(raw_token)
+                remaining = int(token["exp"] - token.current_time.timestamp())
+                ttl = max(remaining, 0)
+                blacklist_token(token["jti"], ttl_seconds=ttl)
+            except TokenError:
+                pass
+
+        response = Response({"detail": "Logged out."}, status=status.HTTP_200_OK)
+        response.delete_cookie(
+            key=cookie_name,
+            path=getattr(settings, "JWT_REFRESH_COOKIE_PATH", "/"),
+            samesite=getattr(settings, "JWT_REFRESH_COOKIE_SAMESITE", "None"),
+        )
+        return response

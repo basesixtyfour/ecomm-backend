@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -162,9 +163,30 @@ JWT_REFRESH_COOKIE_SECURE = True
 JWT_REFRESH_COOKIE_SAMESITE = "None" 
 JWT_REFRESH_COOKIE_PATH = "/"
 
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+
+# Celery
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Ecommerce API',
     'DESCRIPTION': 'API for ecommerce website',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Email (Gmail)
+if os.environ.get('GMAIL_USER') and os.environ.get('GMAIL_APP_PASSWORD'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get('GMAIL_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_APP_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.environ.get('GMAIL_USER')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

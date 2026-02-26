@@ -11,6 +11,8 @@ wheels/
 # Virtual environments
 .venv
 
+ecomm_backend/.env
+
 ecomm_backend/api.http
 
 # SQLite database

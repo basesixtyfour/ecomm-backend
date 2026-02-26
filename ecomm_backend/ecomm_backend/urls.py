@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import CookieTokenRefreshView, EmailTokenObtainPairView, RegisterUserView, UserInfoView
+from users.views import CookieTokenRefreshView, EmailTokenObtainPairView, LogoutView, RegisterUserView, UserInfoView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/register/', RegisterUserView.as_view(), name='register_user'),
     path('api/token/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
     path('api/', include('products.urls')),
     path('api/', include('cart.urls')),
     path('api/', include('orders.urls')),

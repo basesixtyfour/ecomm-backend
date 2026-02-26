@@ -72,3 +72,24 @@ class ChatRoom(Base):
             f"<ChatRoom id={self.id} user_id={self.user_id} "
             f"agent_id={self.agent_id} status={self.status}>"
         )
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    room_id: Mapped[int] = mapped_column(
+        ForeignKey("chat_rooms.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    sender_type: Mapped[MessageSenderType] = mapped_column(
+        SQLEnum(MessageSenderType, name="message_sender_type"),
+        nullable=False,
+    )
+    content: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )

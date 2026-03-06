@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid7, editable=False)
     email = models.EmailField(unique=True, null=False, blank=False)
+    auth0_sub = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     class Meta:
         db_table = "auth_user"

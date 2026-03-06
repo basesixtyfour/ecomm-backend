@@ -13,7 +13,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'profile_photo', 'is_staff']
+        fields = ['id', 'username', 'email', 'profile_photo', 'is_staff', 'auth0_sub']
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"

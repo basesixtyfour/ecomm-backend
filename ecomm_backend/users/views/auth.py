@@ -1,25 +1,17 @@
-from rest_framework import generics, status
+from urllib.parse import urlencode
+
 from django.conf import settings
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import UserInfoSerializer, EmailTokenObtainPairSerializer, RegisterUserSerializer, CustomTokenRefreshSerializer
-from .token_blacklist import blacklist_token
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-
-class RefreshCookieMixin:
-    def set_refresh_cookie(self, response, refresh_token):
-        response.set_cookie(
-            key=getattr(settings, "JWT_REFRESH_COOKIE_NAME", "refresh_token"),
-            value=refresh_token,
-            httponly=getattr(settings, "JWT_REFRESH_COOKIE_HTTP_ONLY", True),
-            secure=getattr(settings, "JWT_REFRESH_COOKIE_SECURE", True),
-            samesite=getattr(settings, "JWT_REFRESH_COOKIE_SAMESITE", "None"),
-            path=getattr(settings, "JWT_REFRESH_COOKIE_PATH", "/"),
-        )
+from ..serializers import EmailTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from ..token_blacklist import blacklist_token
+from .mixins import RefreshCookieMixin
 
 
 class EmailTokenObtainPairView(RefreshCookieMixin, TokenObtainPairView):
@@ -27,7 +19,7 @@ class EmailTokenObtainPairView(RefreshCookieMixin, TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        
+
         if response.status_code == 200:
             refresh_token = response.data.pop("refresh", None)
             if refresh_token:
@@ -42,7 +34,7 @@ class CookieTokenRefreshView(RefreshCookieMixin, TokenRefreshView):
 
     def get_serializer(self, *args, **kwargs):
         data = kwargs.get('data', {})
-        
+
         if not data.get("refresh"):
             cookie_name = getattr(settings, "JWT_REFRESH_COOKIE_NAME", "refresh_token")
             refresh_from_cookie = self.request.COOKIES.get(cookie_name)
@@ -50,38 +42,18 @@ class CookieTokenRefreshView(RefreshCookieMixin, TokenRefreshView):
                 data = dict(data)
                 data["refresh"] = refresh_from_cookie
                 kwargs['data'] = data
-        
+
         return super().get_serializer(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        
+
         if response.status_code == 200:
             refresh_token = response.data.pop("refresh", None)
             if refresh_token:
                 self.set_refresh_cookie(response, refresh_token)
 
         return response
-
-
-class UserInfoView(generics.RetrieveAPIView):
-    serializer_class = UserInfoSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
-
-class RegisterUserView(generics.CreateAPIView):
-    serializer_class = RegisterUserSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        return Response(
-            response.data,
-            status=response.status_code,
-            headers=response.headers,
-        )
 
 
 class LogoutView(APIView):
@@ -100,7 +72,23 @@ class LogoutView(APIView):
             except TokenError:
                 pass
 
-        response = Response({"detail": "Logged out."}, status=status.HTTP_200_OK)
+        auth0_logout = request.data.get("auth0", False)
+        domain = settings.AUTH0_DOMAIN
+        client_id = settings.AUTH0_CLIENT_ID
+        frontend_url = settings.FRONTEND_URL
+
+        if auth0_logout and domain and client_id:
+            auth0_params = urlencode({
+                "client_id": client_id,
+                "returnTo": f"{frontend_url}/login",
+            })
+            response = Response(
+                {"detail": "Logged out.", "auth0_logout_url": f"https://{domain}/v2/logout?{auth0_params}"},
+                status=status.HTTP_200_OK,
+            )
+        else:
+            response = Response({"detail": "Logged out."}, status=status.HTTP_200_OK)
+
         response.delete_cookie(
             key=cookie_name,
             path=getattr(settings, "JWT_REFRESH_COOKIE_PATH", "/"),

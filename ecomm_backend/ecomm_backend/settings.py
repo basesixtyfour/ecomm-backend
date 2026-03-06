@@ -12,9 +12,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -162,6 +165,13 @@ JWT_REFRESH_COOKIE_HTTP_ONLY = True
 JWT_REFRESH_COOKIE_SECURE = True
 JWT_REFRESH_COOKIE_SAMESITE = "None" 
 JWT_REFRESH_COOKIE_PATH = "/"
+
+# Auth0 (Authorization Code Flow)
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID", "")
+AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET", "")
+AUTH0_CALLBACK_URL = os.environ.get("AUTH0_CALLBACK_URL", "http://localhost:8000/api/auth0/callback/")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 

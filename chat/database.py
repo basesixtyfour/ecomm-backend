@@ -1,7 +1,12 @@
+import os
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-DB_PATH = "/home/bhupeshdahiya/ecomm/backend/ecomm_backend/db.sqlite3"
+DB_PATH = os.environ.get(
+    "DB_PATH",
+    "/home/bhupeshdahiya/ecomm/backend/ecomm_backend/db.sqlite3",
+)
 DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 
 engine = create_async_engine(DATABASE_URL, echo=False)

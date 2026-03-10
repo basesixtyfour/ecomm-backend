@@ -25,4 +25,4 @@ RUN pip install --no-cache-dir \
 
 WORKDIR /app
 
-# Source code is bind-mounted at runtime for development hot-reload
+COPY ecomm_backend/ /app/

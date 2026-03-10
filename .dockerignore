@@ -1,0 +1,8 @@
+**/__pycache__
+**/*.pyc
+ecomm_backend/.env
+ecomm_backend/.env.prod
+ecomm_backend/db.sqlite3
+ecomm_backend/media
+ecomm_backend/staticfiles
+chat/__pycache__

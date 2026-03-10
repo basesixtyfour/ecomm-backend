@@ -159,18 +159,20 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()
 
 CORS_ALLOW_CREDENTIALS = True
 
-JWT_REFRESH_COOKIE_NAME = "refresh_token"
-JWT_REFRESH_COOKIE_HTTP_ONLY = True
-JWT_REFRESH_COOKIE_SECURE = True
-JWT_REFRESH_COOKIE_SAMESITE = "None" 
-JWT_REFRESH_COOKIE_PATH = "/"
-
 # Auth0 (Authorization Code Flow)
 AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN", "")
 AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID", "")
 AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET", "")
 AUTH0_CALLBACK_URL = os.environ.get("AUTH0_CALLBACK_URL", "http://localhost:8000/api/auth0/callback/")
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+
+_SITE_IS_HTTPS = FRONTEND_URL.startswith("https://")
+
+JWT_REFRESH_COOKIE_NAME = "refresh_token"
+JWT_REFRESH_COOKIE_HTTP_ONLY = True
+JWT_REFRESH_COOKIE_SECURE = _SITE_IS_HTTPS
+JWT_REFRESH_COOKIE_SAMESITE = "None" if _SITE_IS_HTTPS else "Lax"
+JWT_REFRESH_COOKIE_PATH = "/"
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 

@@ -49,9 +49,10 @@ class Auth0LoginView(APIView):
             "state": state,
         })
 
+        secure = settings.FRONTEND_URL.startswith("https://")
         response = HttpResponseRedirect(f"https://{domain}/authorize?{params}")
-        response.set_cookie("auth0_state", state, max_age=300, httponly=True, samesite="Lax", secure=True)
-        response.set_cookie("auth0_next", next_url, max_age=300, httponly=True, samesite="Lax", secure=True)
+        response.set_cookie("auth0_state", state, max_age=300, httponly=True, samesite="Lax", secure=secure)
+        response.set_cookie("auth0_next", next_url, max_age=300, httponly=True, samesite="Lax", secure=secure)
         return response
 
 

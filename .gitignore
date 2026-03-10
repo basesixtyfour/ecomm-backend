@@ -12,7 +12,7 @@ wheels/
 .venv
 
 ecomm_backend/.env
-
+ecomm_backend/.env.prod
 ecomm_backend/api.http
 
 # SQLite database

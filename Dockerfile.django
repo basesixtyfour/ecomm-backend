@@ -21,7 +21,8 @@ RUN pip install --no-cache-dir \
     "pillow>=12.1.1" \
     "pydot>=4.0.1" \
     "redis>=5.0.0" \
-    "uuid6>=2025.0.1"
+    "uuid6>=2025.0.1" \
+    "whitenoise>=6.8.0"
 
 WORKDIR /app
 
